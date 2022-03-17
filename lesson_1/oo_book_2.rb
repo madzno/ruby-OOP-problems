@@ -14,7 +14,9 @@ we can use a certain behavior by objects of differnt
 classess
 
 We use them in our classes by "mixing them in" using
-`include` method invocation
+`include` method invocation followed by the module
+name
+
 =end
 
 module Music
