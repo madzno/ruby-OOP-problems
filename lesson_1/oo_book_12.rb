@@ -36,7 +36,16 @@ class Vehicle
 
 end
 
+module Convertable
+
+  def top_down?(weather)
+    weather == 'sunny' ? true : false
+  end
+
+end
+
 class MyCar < Vehicle
+  include Convertable
 
   PARKING_SPOT = '1A'
 
@@ -79,6 +88,29 @@ class MyTruck < Vehicle
   end
 end
 
-tesla = MyCar.new(2022, "Red", "Tesla2022", "Nancy")
-chevy = MyTruck.new(2020, "Blue", "Chevy2020", "Clifford")
-puts Vehicle.total_number_of_vehciles
+puts MyCar.ancestors
+=begin
+MyCar
+Convertable
+Vehicle
+Object
+Kernal
+BasicObject
+=end
+
+puts MyTruck.ancestors
+=begin
+MyTruck
+Vehicle
+Object
+Kernal
+BasicObject
+=end
+
+puts Vehicle.ancestors
+=begin
+Vehicle
+Object
+Kernal
+BasicObject
+=end

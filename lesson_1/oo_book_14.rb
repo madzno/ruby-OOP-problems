@@ -1,12 +1,16 @@
 class Vehicle
-  attr_accessor :speed, :color
+  attr_accessor :speed, :color, :name
+  attr_reader :model, :year
 
   @@number_of_vehicles = 0
 
-  def initialize(s, c)
+  def initialize(y, c, m, n, s = 0)
     @@number_of_vehicles += 1
-    @speed = s
+    @year = y
     @color = c
+    @model = m
+    @name = n
+    @speed = s
   end
 
   def self.total_number_of_vehciles
@@ -34,23 +38,29 @@ class Vehicle
     gas_mileage = miles/gallons
   end
 
+  def years_old
+    "Your #{self.model} is #{age} years old."
+  end
+
+  private
+
+  def age
+    Time.now.year - self.year
+  end
+end
+
+module Convertable
+
+  def top_down?(weather)
+    weather == 'sunny' ? true : false
+  end
+
 end
 
 class MyCar < Vehicle
+  include Convertable
 
   PARKING_SPOT = '1A'
-
-  attr_accessor :color, :model, :speed, :name
-  attr_reader :year
-
-  def initialize(y, c, m, n, s = 0)
-    super(s, c)
-    @year = y
-    @color = c
-    @model = m
-    @speed = s
-    @name = n
-  end
 
    def to_s
     "This car's name is #{name}, its color is #{color}, year is #{year}. "\
@@ -61,24 +71,11 @@ end
 class MyTruck < Vehicle
   PARKING_SPOT = '2A'
 
-  attr_accessor :color, :model, :speed, :name
-  attr_reader :year
-
-  def initialize(y, c, m, n, s = 0)
-    super(s, c)
-    @year = y
-    @color = c
-    @model = m
-    @speed = s
-    @name = n
-  end
-
   def to_s
     "This truck's name is #{name}, its color is #{color}, year is #{year}. "\
     "and model is #{model}"
   end
 end
 
-tesla = MyCar.new(2022, "Red", "Tesla2022", "Nancy")
-chevy = MyTruck.new(2020, "Blue", "Chevy2020", "Clifford")
-puts Vehicle.total_number_of_vehciles
+tesla = MyCar.new(2020, 'Red', 'Tesla2020', 'Nancy')
+puts tesla.years_old
