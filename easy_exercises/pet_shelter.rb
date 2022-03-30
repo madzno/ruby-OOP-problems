@@ -40,8 +40,6 @@ Print adoptions method
 =end
 
 
-
-
 butterscotch = Pet.new('cat', 'Butterscotch')
 pudding      = Pet.new('cat', 'Pudding')
 darwin       = Pet.new('bearded dragon', 'Darwin')
