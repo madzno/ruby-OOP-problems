@@ -172,7 +172,7 @@ class RPSGame
   def play_game
     display_welcome_message
     loop do
-      @scoreboard = { human: 0, computer: 0 }
+      self.scoreboard = { human: 0, computer: 0 }
       play_round
       display_ultimate_winner
       break unless play_again?
