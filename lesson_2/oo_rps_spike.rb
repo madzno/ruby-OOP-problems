@@ -78,11 +78,12 @@ end
 # Game Orchenstration Engine
 
 class RPSGame
-  attr_accessor :human, :computer
+  attr_accessor :human, :computer, :scoreboard
 
   def initialize
     @human = Human.new
     @computer = Computer.new
+    @scoreboard = nil
   end
 
   def display_welcome_message
@@ -99,13 +100,46 @@ class RPSGame
     puts "#{computer.name} chose #{computer.move}"
   end
 
-  def display_winner
+  def round_winner
+    if human.move > computer.move
+      :human
+    elsif human.move < computer.move
+      :computer
+    end
+  end
+
+  def add_score
+    if round_winner == :human
+      scoreboard[:human] += 1
+    elsif round_winner == :computer
+      scoreboard[:computer] += 1
+    end
+  end
+
+  def display_round_winner
     if human.move > computer.move
       puts "#{human.name} won!"
     elsif human.move < computer.move
       puts "#{computer.name} won!"
     else
       puts "Its a tie!"
+    end
+  end
+
+  def display_round_scores
+    puts "#{human.name}'s score is #{scoreboard[:human]} and "\
+    "#{computer.name}'s score is #{scoreboard[:computer]}"
+  end
+
+  def ultimate_winner?
+    scoreboard[:human] == 10 || scoreboard[:computer] == 10
+  end
+
+  def display_ultimate_winner
+    if scoreboard[:human] == 10
+      puts "#{human.name} is the ultimate winner!"
+    elsif scoreboard[:computer] == 10
+      puts "#{computer.name} is the ultimate winner!"
     end
   end
 
@@ -122,17 +156,29 @@ class RPSGame
     return false if answer.downcase == 'n'
   end
 
-  def play
-    display_welcome_message
+  def play_round
     loop do
       human.choose
       computer.choose
+      round_winner
+      add_score
       display_moves
-      display_winner
-      display_goodbye_message
+      display_round_winner
+      display_round_scores
+      break if ultimate_winner?
+    end
+  end
+
+  def play_game
+    display_welcome_message
+    loop do
+      @scoreboard = { human: 0, computer: 0 }
+      play_round
+      display_ultimate_winner
       break unless play_again?
     end
+    display_goodbye_message
   end
 end
 
-RPSGame.new.play
+RPSGame.new.play_game
