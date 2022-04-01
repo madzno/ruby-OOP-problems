@@ -1,3 +1,15 @@
+=begin
+Winning combinations
+Rock beats scissors and lizard
+Paper beats rock and Spock
+Scissors beats paper and lizard
+Spock beats scissors and rock
+Lizard beats spock and paper
+
+return true if other move is included in the value of
+the current mobe's value
+=end
+
 class Score
   attr_accessor :board
 
@@ -7,34 +19,24 @@ class Score
 end
 
 class Move
-  VALUES = ['rock', 'paper', 'scissors']
+  attr_reader :value
+
+  VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
+
+  WINNING_COMBINATIONS = {
+                          'rock' => ['scissors', 'lizard'],
+                          'paper' => ['rock', 'spock'],
+                          'scissors' => ['paper', 'lizard'],
+                          'spock' => ['scissors', 'rock'],
+                          'lizard' => ['spock', 'paper']
+                          }
 
   def initialize(value)
     @value = value
   end
 
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
-  end
-
   def >(other_move)
-    (rock? && other_move.scissors?) ||
-      (paper? && other_move.rock?) ||
-      (scissors? && other_move.paper?)
-  end
-
-  def <(other_move)
-    (rock? && other_move.paper?) ||
-      (paper? && other_move.scissors?) ||
-      (scissors? && other_move.rock?)
+    WINNING_COMBINATIONS[value].include?(other_move)
   end
 
   def to_s
@@ -65,10 +67,10 @@ class Human < Player
   def choose
     choice = nil
     loop do
-      puts "Please choose rock, paper, or scissors:"
+      puts "Please choose rock, paper, scissors, lizard or spock:"
       choice = gets.chomp
       break if Move::VALUES.include?(choice.downcase)
-      puts "Invalid choice. Please choose rock paper, or scissors"
+      puts "Invalid choice. Please choose rock paper, scissors, lizard or spock."
     end
     self.move = Move.new(choice.downcase)
   end
@@ -95,12 +97,12 @@ class RPSGame
   end
 
   def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors."
+    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock."
     puts "The first player who reaches 10 wins is the Ultimate Winner!"
   end
 
   def display_goodbye_message
-    puts "Thanks for playing Rock, Paper, Scissors. Good bye!"
+    puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
   end
 
   def display_moves
@@ -111,7 +113,7 @@ class RPSGame
   def round_winner
     if human.move > computer.move
       :human
-    elsif human.move < computer.move
+    elsif computer.move > human.move
       :computer
     end
   end
@@ -125,9 +127,9 @@ class RPSGame
   end
 
   def display_round_winner
-    if human.move > computer.move
+    if round_winner == :human
       puts "#{human.name} won!"
-    elsif human.move < computer.move
+    elsif round_winner == :computer
       puts "#{computer.name} won!"
     else
       puts "Its a tie!"

@@ -70,7 +70,7 @@ class Human < Player
       break if Move::VALUES.include?(choice.downcase)
       puts "Invalid choice. Please choose rock paper, or scissors"
     end
-    self.move = Move.new(choice)
+    self.move = Move.new(choice.downcase)
   end
 end
 
