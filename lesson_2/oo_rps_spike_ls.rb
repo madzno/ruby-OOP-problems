@@ -9,7 +9,6 @@ Lizard beats spock and paper
 return true if other move is included in the value of
 the current mobe's value
 =end
-
 class Score
   attr_accessor :board
 
@@ -36,7 +35,7 @@ class Move
   end
 
   def >(other_move)
-    WINNING_COMBINATIONS[value].include?(other_move)
+    WINNING_COMBINATIONS[self.value].include?(other_move.value)
   end
 
   def to_s

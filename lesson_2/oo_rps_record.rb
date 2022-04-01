@@ -1,3 +1,29 @@
+=begin
+As long as the user doesn't quit keep track of a history
+of moves by both the human and the computer
+
+After each round, record the computers move and the
+human's move
+
+Keep track of the rounds
+
+At round 5, ask if the user would like to see the history
+of moves
+
+display the history of moves if the user says yes
+
+If the user says no, continue with the game
+
+At the end of the game (ultimate winner reached)
+Ask if the user wants to see the moves history
+display the history of moves if the user says yes
+if the user says no, continue with the game
+
+Round a subclass of RPS game
+
+History a module or collaborator object (a round Has a histroy)
+=end
+
 class Score
   attr_accessor :board
 
@@ -72,25 +98,8 @@ class Computer < Player
     self.move = Move.new(Move::VALUES.sample)
   end
 end
-# Game Orchenstration Engine
 
-class RPSGame
-  attr_accessor :human, :computer, :scoreboard
-
-  def initialize
-    @human = Human.new
-    @computer = Computer.new
-    @scoreboard = Score.new
-  end
-
-  def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock."
-    puts "The first player who reaches 10 wins is the Ultimate Winner!"
-  end
-
-  def display_goodbye_message
-    puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
-  end
+module Round
 
   def display_moves
     puts "#{human.name} chose #{human.move}"
@@ -132,6 +141,40 @@ class RPSGame
     scoreboard.board[:human] == 10 || scoreboard.board[:computer] == 10
   end
 
+  def play_round
+    loop do
+      human.choose
+      computer.choose
+      round_winner
+      add_score
+      display_moves
+      display_round_winner
+      display_round_scores
+      break if ultimate_winner?
+    end
+  end
+end
+
+class RPSGame
+  include Round
+
+  attr_accessor :human, :computer, :scoreboard
+
+  def initialize
+    @human = Human.new
+    @computer = Computer.new
+    @scoreboard = Score.new
+  end
+
+  def display_welcome_message
+    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock."
+    puts "The first player who reaches 10 wins is the Ultimate Winner!"
+  end
+
+  def display_goodbye_message
+    puts "Thanks for playing Rock, Paper, Scissors, Lizard, Spock. Good bye!"
+  end
+
   def display_ultimate_winner
     if scoreboard.board[:human] == 10
       puts "#{human.name} is the ultimate winner!"
@@ -151,19 +194,6 @@ class RPSGame
 
     return true if answer.downcase == 'y'
     return false if answer.downcase == 'n'
-  end
-
-  def play_round
-    loop do
-      human.choose
-      computer.choose
-      round_winner
-      add_score
-      display_moves
-      display_round_winner
-      display_round_scores
-      break if ultimate_winner?
-    end
   end
 
   def play_game
