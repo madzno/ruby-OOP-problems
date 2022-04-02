@@ -30,6 +30,10 @@ class Move
   end
 end
 
+class Rock < Move
+
+end
+
 class Player
   attr_accessor :move, :name
 
