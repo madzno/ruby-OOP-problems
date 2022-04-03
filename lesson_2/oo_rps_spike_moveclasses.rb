@@ -31,7 +31,10 @@ class Move
 end
 
 class Rock < Move
-
+  def >(other_value)
+    ['scissors', 'lizard'].include?(other_move.value)
+  end
+  end
 end
 
 class Player
