@@ -6,6 +6,25 @@ class Score
   end
 end
 
+class Record
+  attr_accessor :history_of_moves
+
+  def initialize
+    @history_of_moves = []
+  end
+
+  def add_entry(human_move, computer_move)
+    self.history_of_moves << [human_move, computer_move]
+  end
+
+  def display_record
+    self.history_of_moves.each_with_index do |entry, indx|
+      puts "Round #{indx + 1}: Human move was #{entry[0]} and"\
+        " Computer move was #{entry[1]}"
+    end
+  end
+end
+
 class Move
   attr_reader :value
 
@@ -75,12 +94,14 @@ end
 # Game Orchenstration Engine
 
 class RPSGame
-  attr_accessor :human, :computer, :scoreboard
+  attr_accessor :human, :computer, :scoreboard, :number_of_rounds, :record
 
   def initialize
     @human = Human.new
     @computer = Computer.new
     @scoreboard = Score.new
+    @number_of_rounds = 0
+    @record = Record.new
   end
 
   def display_welcome_message
@@ -154,26 +175,34 @@ class RPSGame
   end
 
   def play_round
-    loop do
-      human.choose
-      computer.choose
-      round_winner
-      add_score
-      display_moves
-      display_round_winner
-      display_round_scores
-      break if ultimate_winner?
-    end
+    human.choose
+    computer.choose
+    round_winner
+    add_score
+    display_moves
+    record.add_entry(human.move, computer.move)
+    display_round_winner
+    display_round_scores
   end
 
   def play_game
     display_welcome_message
+
     loop do
       self.scoreboard = Score.new
-      play_round
+      self.record = Record.new
+
+      loop do
+        self.number_of_rounds += 1
+        play_round
+        record.display_record if self.number_of_rounds % 3 == 0
+        break if ultimate_winner?
+      end
+
       display_ultimate_winner
       break unless play_again?
     end
+
     display_goodbye_message
   end
 end
