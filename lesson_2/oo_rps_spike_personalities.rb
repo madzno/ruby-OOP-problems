@@ -4,14 +4,17 @@ class Score
   def initialize
     @board = { human: 0, computer: 0 }
   end
+
 end
 
 module ClearText
+
   def clear_text
     puts "Press Enter to Continue"
     user_input = gets.chomp
     system 'clear' if user_input
   end
+
 end
 
 class Record
@@ -22,12 +25,12 @@ class Record
   end
 
   def add_entry(human_move, computer_move)
-    history_of_moves << [human_move, computer_move]
+    self.history_of_moves << [human_move, computer_move]
   end
 
   def display_record
     puts "The Current Game's Record is:"
-    history_of_moves.each_with_index do |entry, indx|
+    self.history_of_moves.each_with_index do |entry, indx|
       puts "Round #{indx + 1}: Your move was #{entry[0]} and"\
         " Computer move was #{entry[1]}"
     end
@@ -37,9 +40,11 @@ class Record
   protected
 
   attr_accessor :history_of_moves
+
 end
 
 class Move
+
   VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
 
   WINNING_COMBINATIONS = {  'rock' => ['scissors', 'lizard'],
@@ -74,6 +79,7 @@ class Player
 end
 
 class Human < Player
+
   def choose
     choice = nil
     loop do
@@ -98,9 +104,11 @@ class Human < Player
     end
     self.name = n
   end
+
 end
 
 class Daenerys < Player
+
   def choose
     self.move = Move.new('lizard')
   end
@@ -113,6 +121,7 @@ class Daenerys < Player
 end
 
 class TheMountain < Player
+
   def choose
     self.move = Move.new('rock')
   end
@@ -125,6 +134,7 @@ class TheMountain < Player
 end
 
 class NedStark < Player
+
   def choose
     self.move = Move.new(Move::VALUES.sample)
   end
@@ -141,7 +151,7 @@ class RPSGame
 
   def initialize
     @human = Human.new
-    @computer = choose_computer_player
+    @computer = nil
     @scoreboard = Score.new
     @number_of_rounds = 0
     @record = Record.new
@@ -150,13 +160,6 @@ class RPSGame
   private
 
   attr_accessor :human, :computer, :scoreboard, :number_of_rounds, :record
-
-  def initialize_new_game
-    self.scoreboard = Score.new
-    self.number_of_rounds = 0
-    self.record = Record.new
-    self.computer = choose_computer_player
-  end
 
   def display_welcome_message
     puts "Welcome to Rock, Paper, Scissors, Lizard, Spock."
@@ -236,10 +239,6 @@ class RPSGame
     return false if answer.downcase == 'n'
   end
 
-  def add_round
-    self.number_of_rounds += 1
-  end
-
   def play_round
     human.choose
     computer.choose
@@ -254,17 +253,18 @@ class RPSGame
 
   public
 
-  # rubocop:disable Metrics/MethodLength
-
   def play_game
     display_welcome_message
 
     loop do
-      initialize_new_game
+      self.scoreboard = Score.new
+      self.record = Record.new
+      self.computer = choose_computer_player
       display_computer
+      clear_text
 
       loop do
-        add_round
+        self.number_of_rounds += 1
         play_round
         record.display_record if self.number_of_rounds % 3 == 0
         break if ultimate_winner?
@@ -277,7 +277,7 @@ class RPSGame
 
     display_goodbye_message
   end
-  # rubocop:enable Metrics/MethodLength
+
 end
 
 RPSGame.new.play_game
