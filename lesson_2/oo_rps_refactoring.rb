@@ -275,4 +275,3 @@ class RPSGame
 end
 
 RPSGame.new.play_game
-
