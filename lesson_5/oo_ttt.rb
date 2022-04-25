@@ -1,3 +1,5 @@
+require 'pry'
+
 module Display
   def display_welcome_message
     puts "Welcome to Tic Tac Toe!"
@@ -39,6 +41,22 @@ module Display
   def clear_screen_and_display_board
     clear
     display_board
+  end
+
+  def joinor(arr, symbol = ', ', word = 'or')
+    case arr.size
+    when 0 then ' '
+    when 1 then arr.first
+    when 2 then arr.join(" #{word} ")
+    else
+      arr[-1] = "#{word} #{arr.last}"
+      arr.join(symbol)
+    end
+  end
+
+  def display_score
+    puts "Player's score is #{scoreboard.scores[:player]} and Computer's" \
+    "score is #{scoreboard.scores[:computer]}"
   end
 end
 
@@ -139,6 +157,18 @@ class Player
   end
 end
 
+class ScoreBoard
+  attr_reader :scores
+
+  def initialize
+    @scores = { player: 0, computer: 0 }
+  end
+
+  def reset
+    initialize
+  end
+end
+
 class TTTGame
   include Display
 
@@ -146,36 +176,44 @@ class TTTGame
   COMPUTER_MARKER = 'O'
   FIRST_TO_MOVE = HUMAN_MARKER
 
-  attr_reader :board, :human, :computer
-
   def initialize
     @board = Board.new
     @human = Player.new(HUMAN_MARKER)
     @computer = Player.new(COMPUTER_MARKER)
     @current_marker = FIRST_TO_MOVE
+    @scoreboard = ScoreBoard.new
   end
 
   def play
-    clear
-    display_welcome_message
-    main_game
+    loop do
+      clear
+      display_welcome_message
+      main_game
+      break unless play_again?
+      reset
+      scoreboard.reset
+      display_play_again_message
+    end
     display_goodbye_message
   end
 
   private
 
+  attr_reader :board, :human, :computer, :scoreboard
+
   def main_game
     loop do
-      display_board
-      player_move
-      display_result
-      break unless play_again?
       reset
-      display_play_again_message
+      display_board
+      play_round
+      display_result
+      tally_score
+      display_score
+      break if ultimate_winner?
     end
   end
 
-  def player_move
+  def play_round
     loop do
       current_player_moves
       break if board.someone_won? || board.full?
@@ -184,7 +222,7 @@ class TTTGame
   end
 
   def human_moves
-    puts "Chose a square (#{board.unmarked_keys.join(', ')}): "
+    puts "Chose a square (#{joinor(board.unmarked_keys)}): "
     square = nil
 
     loop do
@@ -215,7 +253,6 @@ class TTTGame
   def reset
     board.reset
     @current_marker = FIRST_TO_MOVE
-    clear
   end
 
   def human_turn?
@@ -230,6 +267,18 @@ class TTTGame
       computer_moves
       @current_marker = HUMAN_MARKER
     end
+  end
+
+  def tally_score
+    if board.winning_marker == HUMAN_MARKER
+      scoreboard.scores[:player] += 1
+    elsif board.winning_marker == COMPUTER_MARKER
+      scoreboard.scores[:computer] += 1
+    end
+  end
+
+  def ultimate_winner?
+    scoreboard.scores[:computer] == 5 || scoreboard.scores[:player] == 5
   end
 end
 
