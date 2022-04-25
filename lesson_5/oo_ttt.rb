@@ -56,7 +56,16 @@ module Display
 
   def display_score
     puts "Player's score is #{scoreboard.scores[:player]} and Computer's" \
-    "score is #{scoreboard.scores[:computer]}"
+    " score is #{scoreboard.scores[:computer]}"
+    puts "First player to 5 is the Ultimate Winner!"
+  end
+
+  def display_ultimate_winner
+    if scoreboard.scores[:computer] == TTTGame::WINNING_SCORE
+      puts "Computer is the Ultimate Winner!"
+    else
+      puts "You are the Ultimate Winner!"
+    end
   end
 end
 
@@ -175,6 +184,7 @@ class TTTGame
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
   FIRST_TO_MOVE = HUMAN_MARKER
+  WINNING_SCORE = 5
 
   def initialize
     @board = Board.new
@@ -189,6 +199,7 @@ class TTTGame
       clear
       display_welcome_message
       main_game
+      display_ultimate_winner
       break unless play_again?
       reset
       scoreboard.reset
@@ -278,7 +289,8 @@ class TTTGame
   end
 
   def ultimate_winner?
-    scoreboard.scores[:computer] == 5 || scoreboard.scores[:player] == 5
+    scoreboard.scores[:computer] == WINNING_SCORE ||
+    scoreboard.scores[:player] == WINNING_SCORE
   end
 end
 
