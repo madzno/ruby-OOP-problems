@@ -218,26 +218,22 @@ class TTTGame
 
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
-  FIRST_TO_MOVE = HUMAN_MARKER
   WINNING_SCORE = 5
+  INITIAL_SQUARE = 5
 
   def initialize
     @board = Board.new
     @human = Human.new(HUMAN_MARKER)
     @computer = Computer.new(COMPUTER_MARKER)
-    @current_marker = FIRST_TO_MOVE
     @scoreboard = ScoreBoard.new
   end
 
   def play
     loop do
-      clear
-      display_welcome_message
+      setup_game
       main_game
       display_ultimate_winner
       break unless play_again?
-      reset
-      scoreboard.reset
       display_play_again_message
     end
     display_goodbye_message
@@ -249,7 +245,7 @@ class TTTGame
 
   def main_game
     loop do
-      reset
+      board.reset
       display_board
       play_round
       display_result
@@ -292,11 +288,6 @@ class TTTGame
     answer == 'y'
   end
 
-  def reset
-    board.reset
-    @current_marker = FIRST_TO_MOVE
-  end
-
   def human_turn?
     @current_marker == HUMAN_MARKER
   end
@@ -329,12 +320,38 @@ class TTTGame
             computer.computer_offense(board.squares)
           elsif computer.computer_defense(board.squares)
             computer.computer_defense(board.squares)
-          elsif board.squares[5].marker == Square::INITAL_MARKER
-            5
+          elsif board.squares[INITIAL_SQUARE].marker == Square::INITAL_MARKER
+            INITIAL_SQUARE
           else
             board.unmarked_keys.sample
           end
     board.squares[key].marker = TTTGame::COMPUTER_MARKER
+  end
+
+  def who_goes_first
+    answer = nil
+    loop do
+      puts "Who moves first? Type 'c' for Computer and 'u' for User"
+      answer = gets.chomp
+      break if ['c', 'u'].include?(answer.downcase)
+      puts "Invalid choice! please type 'c' or 'u'"
+    end
+    first_to_move(answer)
+  end
+
+  def first_to_move(choice)
+    @current_marker = if choice == 'u'
+                        HUMAN_MARKER
+                      else
+                        COMPUTER_MARKER
+                      end
+  end
+
+  def setup_game
+    clear
+    display_welcome_message
+    who_goes_first
+    scoreboard.reset
   end
 end
 
