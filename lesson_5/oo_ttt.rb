@@ -20,9 +20,9 @@ module Display
   def display_result
     clear_screen_and_display_board
     case board.winning_marker
-    when TTTGame::HUMAN_MARKER
+    when human.marker
       puts "You won!"
-    when TTTGame::COMPUTER_MARKER
+    when computer.marker
       puts "Computer won!"
     else
       puts "It's a tie!"
@@ -162,26 +162,30 @@ end
 
 class Player
   attr_reader :marker
-
-  def initialize(marker)
-    @marker = marker
-  end
 end
 
 class Computer < Player
+  def assign_marker=(choice)
+    @marker = if choice == 'X'
+                'O'
+              else
+                'X'
+              end
+  end
+
   def computer_offense(board_hash)
     square = nil
     Board::WINNING_LINES.each do |line|
-      square = find_at_risk_square(line, board_hash, TTTGame::COMPUTER_MARKER)
+      square = find_at_risk_square(line, board_hash, @marker)
       break if square
     end
     square
   end
 
-  def computer_defense(board_hash)
+  def computer_defense(board_hash, human_marker)
     square = nil
     Board::WINNING_LINES.each do |line|
-      square = find_at_risk_square(line, board_hash, TTTGame::HUMAN_MARKER)
+      square = find_at_risk_square(line, board_hash, human_marker)
       break if square
     end
     square
@@ -199,6 +203,9 @@ class Computer < Player
 end
 
 class Human < Player
+  def assign_marker=(choice)
+    @marker = choice
+  end
 end
 
 class ScoreBoard
@@ -216,15 +223,13 @@ end
 class TTTGame
   include Display
 
-  HUMAN_MARKER = 'X'
-  COMPUTER_MARKER = 'O'
   WINNING_SCORE = 5
   INITIAL_SQUARE = 5
 
   def initialize
     @board = Board.new
-    @human = Human.new(HUMAN_MARKER)
-    @computer = Computer.new(COMPUTER_MARKER)
+    @human = Human.new
+    @computer = Computer.new
     @scoreboard = ScoreBoard.new
   end
 
@@ -289,23 +294,23 @@ class TTTGame
   end
 
   def human_turn?
-    @current_marker == HUMAN_MARKER
+    @current_marker == human.marker
   end
 
   def current_player_moves
     if human_turn?
       human_moves
-      @current_marker = COMPUTER_MARKER
+      @current_marker = computer.marker
     else
       computer_moves
-      @current_marker = HUMAN_MARKER
+      @current_marker = human.marker
     end
   end
 
   def tally_score
-    if board.winning_marker == HUMAN_MARKER
+    if board.winning_marker == human.marker
       scoreboard.scores[:player] += 1
-    elsif board.winning_marker == COMPUTER_MARKER
+    elsif board.winning_marker == computer.marker
       scoreboard.scores[:computer] += 1
     end
   end
@@ -318,14 +323,14 @@ class TTTGame
   def computer_moves
     key = if computer.computer_offense(board.squares)
             computer.computer_offense(board.squares)
-          elsif computer.computer_defense(board.squares)
-            computer.computer_defense(board.squares)
+          elsif computer.computer_defense(board.squares, human.marker)
+            computer.computer_defense(board.squares, human.marker)
           elsif board.squares[INITIAL_SQUARE].marker == Square::INITAL_MARKER
             INITIAL_SQUARE
           else
             board.unmarked_keys.sample
           end
-    board.squares[key].marker = TTTGame::COMPUTER_MARKER
+    board.squares[key].marker = computer.marker
   end
 
   def who_goes_first
@@ -341,17 +346,34 @@ class TTTGame
 
   def first_to_move(choice)
     @current_marker = if choice == 'u'
-                        HUMAN_MARKER
+                        human.marker
                       else
-                        COMPUTER_MARKER
+                        computer.marker
                       end
   end
 
   def setup_game
     clear
     display_welcome_message
+    user_chooses_marker
     who_goes_first
     scoreboard.reset
+  end
+
+  def user_chooses_marker
+    choice = nil
+    loop do
+      puts "Choose a marker: 'X' or 'O'"
+      choice = gets.chomp.upcase
+      break if ['X', 'O'].include?(choice)
+      puts "Invalid entry! Please choose 'X' or 'O'"
+    end
+    set_player_markers(choice)
+  end
+
+  def assign_player_markers=(choice)
+    human.assign_marker=(choice)
+    computer.assign_marker=(choice)
   end
 end
 
