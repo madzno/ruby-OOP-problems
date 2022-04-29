@@ -1,5 +1,3 @@
-require 'pry'
-
 module Display
   def display_welcome_message
     puts "Welcome to Tic Tac Toe!"
@@ -11,7 +9,8 @@ module Display
   end
 
   def display_board
-    puts "You're #{human.marker}. Computer is a #{computer.marker}"
+    puts "#{human.name} is #{human.marker}. #{computer.name} is"\
+          " #{computer.marker}"
     puts ""
     board.draw
     puts ""
@@ -21,9 +20,9 @@ module Display
     clear_screen_and_display_board
     case board.winning_marker
     when human.marker
-      puts "You won!"
+      puts "#{human.name} won!"
     when computer.marker
-      puts "Computer won!"
+      puts "#{computer.name} won!"
     else
       puts "It's a tie!"
     end
@@ -55,17 +54,19 @@ module Display
   end
 
   def display_score
-    puts "Player's score is #{scoreboard.scores[:player]} and Computer's" \
-    " score is #{scoreboard.scores[:computer]}"
+    puts "#{human.name}'s score is #{scoreboard.scores[:player]} and" \
+          " #{computer.name}'s score is #{scoreboard.scores[:computer]}"
     puts "First player to 5 is the Ultimate Winner!"
+    puts ""
   end
 
   def display_ultimate_winner
     if scoreboard.scores[:computer] == TTTGame::WINNING_SCORE
-      puts "Computer is the Ultimate Winner!"
+      puts "#{computer.name} is the Ultimate Winner!"
     else
-      puts "You are the Ultimate Winner!"
+      puts "#{human.name} is the Ultimate Winner!"
     end
+    puts ""
   end
 end
 
@@ -161,7 +162,7 @@ class Square
 end
 
 class Player
-  attr_reader :marker
+  attr_accessor :marker, :name
 end
 
 class Computer < Player
@@ -171,6 +172,16 @@ class Computer < Player
               else
                 'X'
               end
+  end
+
+  def assign_name(choice)
+    @name = if choice == 1
+              "Ned Stark"
+            elsif choice == 2
+              "Daenerys Targaryen"
+            else
+              "The Mountain"
+            end
   end
 
   def computer_offense(board_hash)
@@ -203,8 +214,11 @@ class Computer < Player
 end
 
 class Human < Player
-  def assign_marker=(choice)
-    @marker = choice
+  def assign_name
+    puts "What's your name?"
+    answer = gets.chomp
+    @name = answer
+    puts ""
   end
 end
 
@@ -248,8 +262,18 @@ class TTTGame
 
   attr_reader :board, :human, :computer, :scoreboard
 
+  def setup_game
+    clear
+    display_welcome_message
+    assign_player_names
+    clear
+    user_chooses_marker
+    scoreboard.reset
+  end
+
   def main_game
     loop do
+      who_goes_first
       board.reset
       display_board
       play_round
@@ -268,6 +292,91 @@ class TTTGame
     end
   end
 
+  def assign_player_names
+    human.assign_name
+    user_chooses_opponent
+  end
+
+  # rubocop:disable Metrics/MethodLength
+  def user_chooses_opponent
+    choice = nil
+    loop do
+      puts "Who do you want as your opponent? Type 1, 2, or 3:
+              1 - Ned Stark
+              2 - Daenerys Targaryen
+              3 - The Mountain"
+      choice = gets.chomp.to_i
+      break if [1, 2, 3].include?(choice)
+      puts "Invalid input! Please type 1, 2, or 3"
+    end
+    computer.assign_name(choice)
+  end
+  # rubocop:enable Metrics/MethodLength
+
+  def user_chooses_marker
+    choice = nil
+    loop do
+      puts "Choose a marker: 'X' or 'O'"
+      choice = gets.chomp.upcase
+      puts ""
+      break if ['X', 'O'].include?(choice)
+      puts "Invalid entry! Please choose 'X' or 'O'"
+    end
+    assign_player_markers(choice)
+  end
+
+  def assign_player_markers(choice)
+    human.marker = choice
+    computer.assign_marker = choice
+  end
+
+  def who_goes_first
+    answer = nil
+    loop do
+      puts "Who moves first? Type 'c' for computer and 'u' for user"
+      answer = gets.chomp.downcase
+      puts ''
+      break if ['c', 'u'].include?(answer)
+      puts "Invalid choice! please type 'c' or 'u'"
+    end
+    first_to_move(answer)
+  end
+
+  def first_to_move(choice)
+    @current_marker = if choice == 'u'
+                        human.marker
+                      else
+                        computer.marker
+                      end
+  end
+
+  def current_player_moves
+    if human_turn?
+      human_moves
+      @current_marker = computer.marker
+    else
+      computer_moves(board.squares, human.marker)
+      @current_marker = human.marker
+    end
+  end
+
+  def human_turn?
+    @current_marker == human.marker
+  end
+
+  def computer_moves(board_hsh, human_marker)
+    key = if computer.computer_offense(board_hsh)
+            computer.computer_offense(board_hsh)
+          elsif computer.computer_defense(board_hsh, human_marker)
+            computer.computer_defense(board_hsh, human_marker)
+          elsif board_hsh[INITIAL_SQUARE].marker == Square::INITAL_MARKER
+            INITIAL_SQUARE
+          else
+            board.unmarked_keys.sample
+          end
+    board_hsh[key].marker = computer.marker
+  end
+
   def human_moves
     puts "Chose a square (#{joinor(board.unmarked_keys)}): "
     square = nil
@@ -279,32 +388,6 @@ class TTTGame
     end
 
     board[square] = human.marker
-  end
-
-  def play_again?
-    answer = nil
-    loop do
-      puts "Whould you like to play again? (y/n)"
-      answer = gets.chomp.downcase
-      break if ['y', 'n'].include?(answer)
-      puts "Sorry, must be y or n"
-    end
-
-    answer == 'y'
-  end
-
-  def human_turn?
-    @current_marker == human.marker
-  end
-
-  def current_player_moves
-    if human_turn?
-      human_moves
-      @current_marker = computer.marker
-    else
-      computer_moves
-      @current_marker = human.marker
-    end
   end
 
   def tally_score
@@ -320,60 +403,16 @@ class TTTGame
       scoreboard.scores[:player] == WINNING_SCORE
   end
 
-  def computer_moves
-    key = if computer.computer_offense(board.squares)
-            computer.computer_offense(board.squares)
-          elsif computer.computer_defense(board.squares, human.marker)
-            computer.computer_defense(board.squares, human.marker)
-          elsif board.squares[INITIAL_SQUARE].marker == Square::INITAL_MARKER
-            INITIAL_SQUARE
-          else
-            board.unmarked_keys.sample
-          end
-    board.squares[key].marker = computer.marker
-  end
-
-  def who_goes_first
+  def play_again?
     answer = nil
     loop do
-      puts "Who moves first? Type 'c' for Computer and 'u' for User"
-      answer = gets.chomp
-      break if ['c', 'u'].include?(answer.downcase)
-      puts "Invalid choice! please type 'c' or 'u'"
+      puts "Whould you like to play again? (y/n)"
+      answer = gets.chomp.downcase
+      break if ['y', 'n'].include?(answer)
+      puts "Sorry, must be y or n"
     end
-    first_to_move(answer)
-  end
 
-  def first_to_move(choice)
-    @current_marker = if choice == 'u'
-                        human.marker
-                      else
-                        computer.marker
-                      end
-  end
-
-  def setup_game
-    clear
-    display_welcome_message
-    user_chooses_marker
-    who_goes_first
-    scoreboard.reset
-  end
-
-  def user_chooses_marker
-    choice = nil
-    loop do
-      puts "Choose a marker: 'X' or 'O'"
-      choice = gets.chomp.upcase
-      break if ['X', 'O'].include?(choice)
-      puts "Invalid entry! Please choose 'X' or 'O'"
-    end
-    set_player_markers(choice)
-  end
-
-  def assign_player_markers=(choice)
-    human.assign_marker=(choice)
-    computer.assign_marker=(choice)
+    answer == 'y'
   end
 end
 
