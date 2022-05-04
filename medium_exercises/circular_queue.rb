@@ -3,6 +3,7 @@ nouns - circular que, objects, position
 verb - added, is the queue full? , getting rid of/dioscarded, replaced
 most recent vs oldest - states of the object?
 =end
+require 'pry'
 
 class Member
   attr_accessor :age, :value
@@ -22,19 +23,87 @@ class CircularQueue
   end
 
   def enqueue(integer)
-     if @queue.all? { |member| member.value.nil? }
-       @queue[0] = Member.new(integer)
-     elsif
-
-    # else, add integer to the next position (index + 1) of the newest aged object
-    # else, if the queue is full add the new integer to the value of the oldest member (replace)
+    if empty_queue?
+      @queue[0] = Member.new(integer)
+    elsif full_queue?
+      replace_oldest_member(integer)
+    else
+      add_new_member(integer)
+    end
   end
 
-  def dequeue(integer)
-    # remove the oldest member of the queue and replace with default member (value = nil) -
-    # return the value of that member (will be integer or nill if default member)
+  def empty_queue?
+    @queue.all? { |member| member.value.nil? }
+  end
+
+  def full_queue?
+    @queue.all? { |member| member.value != nil }
+  end
+
+  def replace_oldest_member(integer)
+    oldest_member = @queue.sort_by { |member| member.age }.first
+    @queue[@queue.index(oldest_member)] = Member.new(integer)
+  end
+
+  def add_new_member(integer)
+    newest_member = @queue.sort_by { |member| member.age }.last
+    newest_member_index = @queue.index(newest_member)
+    if newest_member_index == @queue.length - 1
+      @queue[0] = Member.new(integer)
+    else
+      @queue[newest_member_index + 1] = Member.new(integer)
+    end
+  end
+
+  def dequeue
+    return nil if empty_queue?
+
+    oldest_member = @queue.select do |member|
+      member.value != nil
+    end.sort_by { |member| member.age }.first
+
+    @queue[@queue.index(oldest_member)] = Member.new
+
+    return oldest_member.value
   end
 end
 
 queue = CircularQueue.new(3)
-p queue
+# puts queue.dequeue == nil
+
+# queue.enqueue(1)
+# queue.enqueue(2)
+# puts queue.dequeue == 1
+
+queue.enqueue(3)
+queue.enqueue(4)
+puts queue.dequeue == 2
+
+queue.enqueue(5)
+queue.enqueue(6)
+queue.enqueue(7)
+puts queue.dequeue == 5
+puts queue.dequeue == 6
+puts queue.dequeue == 7
+puts queue.dequeue == nil
+
+queue = CircularQueue.new(4)
+puts queue.dequeue == nil
+
+queue.enqueue(1)
+queue.enqueue(2)
+puts queue.dequeue == 1
+
+queue.enqueue(3)
+queue.enqueue(4)
+puts queue.dequeue == 2
+
+queue.enqueue(5)
+queue.enqueue(6)
+queue.enqueue(7)
+puts queue.dequeue == 4
+puts queue.dequeue == 5
+puts queue.dequeue == 6
+puts queue.dequeue == 7
+puts queue.dequeue == nil
+
