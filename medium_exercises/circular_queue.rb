@@ -46,8 +46,12 @@ class CircularQueue
   end
 
   def add_new_member(integer)
-    newest_member = @queue.sort_by { |member| member.age }.last
+    newest_member = @queue.select do |member|
+      member.value != nil
+    end.sort_by { |member| member.age }.last
+
     newest_member_index = @queue.index(newest_member)
+
     if newest_member_index == @queue.length - 1
       @queue[0] = Member.new(integer)
     else
@@ -69,11 +73,11 @@ class CircularQueue
 end
 
 queue = CircularQueue.new(3)
-# puts queue.dequeue == nil
+puts queue.dequeue == nil
 
-# queue.enqueue(1)
-# queue.enqueue(2)
-# puts queue.dequeue == 1
+queue.enqueue(1)
+queue.enqueue(2)
+puts queue.dequeue == 1
 
 queue.enqueue(3)
 queue.enqueue(4)
@@ -106,4 +110,7 @@ puts queue.dequeue == 5
 puts queue.dequeue == 6
 puts queue.dequeue == 7
 puts queue.dequeue == nil
+
+
+
 
